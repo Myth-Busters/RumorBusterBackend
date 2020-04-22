@@ -6,3 +6,5 @@ class Variables:
     auth_token = '687385f317ffcc95daa7bd445807dfd7'
     whatsappSender='whatsapp:+14155238886'
     databaseName = 'busters'
+    bot_token = "place your token here"
+    bot_user_name = "Akad"

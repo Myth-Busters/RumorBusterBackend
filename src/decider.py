@@ -52,7 +52,7 @@ def register_request(query_dic, flag):
   query.video_url = "Not Supported" #get binary in a different field later
   query.ip_address = query_dic.get("IP")
   query.query_type = flag
-  
+  query.save()
   return query
 
 def search_if_exists(query):
@@ -62,7 +62,9 @@ def search_if_exists(query):
   #it has media, each pic/video will be sent in an individual request.
   #We are not currently handling video
   elif query.num_media == '1':
-    rumor = Rumor.objects(hash__exact=query.hash)
+    print('----->')
+    print(query)
+    rumor = Rumor.objects(image_hash__exact=query.image_hash)
   return rumor
   
   return rumor
@@ -93,7 +95,7 @@ def handle_request2(request, flag):
       #it has media, each pic/video will be sent in an individual request.
       #We are not currently handling video
       elif query.num_media == '1':
-        rumor_count = Query.objects(hash__exact=query.hash).count()
+        rumor_count = Query.objects(image_hash__exact=query.image_hash).count()
       print(rumor_count)
       print('Found {} posts with tag "mongodb"'.format(rumor_count))
 

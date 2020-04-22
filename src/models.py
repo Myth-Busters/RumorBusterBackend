@@ -19,12 +19,10 @@ class Request(Document):
     def getImage(self, *args, **kwargs):
         messageDic = ast.literal_eval(self.message)
         numMedia = int(ast.literal_eval(self.message)['NumMedia']) 
-        if numMedia > 0:
-            return [messageDic['MediaUrl0']]
-        return []
+        return [messageDic['MediaUrl0']] if numMedia > 0 else []
 
     def getBody(self, *args, **kwargs):
-        return ast.literal_eval(self.message)['Body']
+        return  ast.literal_eval(self.message)['Body'] if ast.literal_eval(self.message)['Body'] else ''
 
 class RequestQueue(Document):
     requester = ReferenceField(Requester, required=True)

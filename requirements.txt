@@ -3,6 +3,7 @@ mongoengine
 apscheduler
 Image
 imagehash
+python-telegram-bot
 flask_limiter
 flask-cors
 certifi==2019.9.11
