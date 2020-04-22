@@ -7,6 +7,7 @@ from query import Query
 from rumor import Rumor
 import os
 import ast
+from variables import Variables
 IMAGES_DIR = "images"
 
     
@@ -66,7 +67,7 @@ def search_if_exists(query):
   
   return rumor
 def handle_request2(request, flag):
-  connect('busters')
+  connect(Variables.databaseName)
   
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
@@ -96,7 +97,7 @@ def handle_request2(request, flag):
       print(rumor_count)
       print('Found {} posts with tag "mongodb"'.format(rumor_count))
 
-    #Check if a certain rumor has more than 30 reports
+    #Check if a certain rumor has more than 15 reports
   
 def handle_check(query):
   if query.num_media == '0':
@@ -104,21 +105,21 @@ def handle_check(query):
   if query.num_media == '1':
     count = Query.objects(image_hash__exact=query.image_hash, query_type = 2).count()
   if count > 15: # threshold number of spam reports
-    return 1 #decider decided it is rumor
-  return 2 #decider decided it is not a rumor
+    return 1 # decider decided it is rumor
+  return 2 # we have less reports to what qualified as a rumor 
   
 def handle_request(request, flag):
-  connect('busters')
+  connect(Variables.databaseName)
   
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
   rumor = search_if_exists(query) #Find existing rumor
   if flag == '1': #check
     if not rumor:
-      return 2 #not a rumor because rumor does not exist
+      return 3 # not a rumor because rumor does not exist ||  
     return handle_check(query)
   elif flag == '2': #report
-    return 3
+    return 3 
   elif flag == '3':#garbage/other
     return 99 # Request will not be processed
 # TEST CALL

@@ -3,8 +3,9 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import re, json
+from __main__ import app
 
-app = Flask(__name__, static_url_path='/static', template_folder='templates')
+# app = Flask(__name__, static_url_path='/static', template_folder='templates')
 
 
 # Rate limit
@@ -83,6 +84,6 @@ def api3():
         return abort(500)
 
 
-if __name__ == "__main__":
-    # Because we care about security :)
-    app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
+# if __name__ == "__main__":
+#     # Because we care about security :)
+#     app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
