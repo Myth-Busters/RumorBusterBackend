@@ -5,8 +5,8 @@ messages = {
                 + 'تستطيع إعادة توجيه الرسائل إليّ لأقوم بتحليلها,' + ' ويمكنك إعادة توجيه أكثر من رسالة لي في نفس الوقت.' \
                 + '\n \n For English, please send 0 at any time',
             'en': "Hello!" \
-                + "\n This is (name of the bot), I'm here to assist you with verfying rumors or to report them. " \
-                + "You can forward me messages to anlyze them. You can forward me as many messages as you like" \
+                + "\n This is (name of the bot), I'm here to assist you with verifying rumors or to report them. " \
+                + "You can forward me messages to analyze them. You can forward me as many messages as you like" \
                 + "\n\n للعربية، يرجى إرسال 0 في أي وقت"
         },
 
@@ -26,7 +26,7 @@ messages = {
             'ar':'أقوم الآن بتحليل الرسائل التي قمت بأرسلها سابقًا،' \
                 + ' تستطيع ارسال رسائل جديدة حالما أنتهي من جميع الرسائل من التحقق',
             'en': "I'm analyzing your messages now" \
-                + "once I'm done with the messages you hve fed, you cen send new ones"
+                + "once I'm done with the messages you have fed, you can send new ones"
         },
 
         'subMessage' : {
@@ -55,7 +55,7 @@ messages = {
 
         'doneWithQueueMessages' : {
             'ar': 'عظيم! قمت بتحليل جميع الرسائل التي ارسلتها لي، شكرًا لك!!',
-            'en': 'Awesome! Just completed validiting all the messages you sent. Thank you!'
+            'en': 'Awesome! Just completed validating all the messages you sent. Thank you!'
         },
 
         'doneWithRumorsSubmissionMessage' : {
@@ -68,12 +68,12 @@ messages = {
         'exceededLimitMessage': {
             'ar': 'لقد أرسلت الحد الأعلى لعدد الرسائل التي تستطيع التحقق منها دفعة واحدة.' \
                 + '\n يرجى الإنتظار ريثما أقوم بالتحقق من الرسائل من ثم تستطيع إرسال رسائل جديدة',
-            'en': 'You exceeded limit of messages you can validate in a single time' \
+            'en': 'You exceeded the limit of messages you can validate in a single time' \
                 +'\n Please wait while I get back to you with the messages you sent, and then you can send me more.'
         },
 
         'invalidCommand': {
             'ar': 'همم، يبدو انك أدخلت أمر خاطئ',
-            'en': 'Hmm, it looks like you enterted an invalid command'
+            'en': 'Hmm, it looks like you entered an invalid command'
         }
 }

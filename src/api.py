@@ -78,7 +78,17 @@ def api3():
         # data = function()
 
         # A sorted array of data \/
-        jsonData =          {'success': True}
+        jsonData =   {
+        "results": [
+            {"rumour":"Hello World.", "id":1},
+            {"rumour":"Hello World.", "id":2},
+            {"rumour":"Hello World.", "id":3},
+            {"rumour":"Hello World.", "id":4},
+            {"rumour":"Hello World.", "id":5},
+            {"rumour":"Hello World.", "id":6}
+            ]
+        }
+        # jsonData =          {'success': True}
         return json.dumps(jsonData), 200, {'ContentType': 'application/json'}
     except:
         return abort(500)

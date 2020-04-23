@@ -6,15 +6,39 @@ from variables import Variables
 from twilio.rest import Client
 import random
 from decider import handle_request
+import requests  
+import telegram
+import ast
+from unidecode import unidecode
 
 connect(Variables.databaseName)
 client = Client(Variables.account_sid, Variables.auth_token) # twilio client
+bot = telegram.Bot(Variables.bot_token) # telegram bot 
 
+#TODO error handlign 
+#TODO Handle telgram 
+def commander(msg, reqer):
+    if not reqer:
+         return messages['greetingmessage']['ar']
+    incoming_msg = msg['Body'].lower()
+    if incoming_msg == '0':
+        updateLangPref(reqer)
+        return messages['langChange'][reqer.lang]
+    
+    if unidecode(incoming_msg) == '1' or unidecode(incoming_msg) == '2':
+        handleQueueProccessing(reqer, unidecode(incoming_msg))
+        return
+    if requestsEliminator(msg, reqer):
+        return messages['noProcessingForYou'][reqer.lang]
+    # submession handling 
+    m = handleSubmession(reqer, msg)
+    return m
+    
 def requestsEliminator(msgBody, reqer):
-    text = msgBody.get('Body', '').lower()
-    numOfMedia = msgBody.get('NumMedia', '')
+    text = msgBody['Body'].lower()
+    numOfMedia = msgBody['NumMedia']
     if numOfMedia == '0' and len(text) < 10:  # change latter to 150
-        Request(requester = reqer, message = str(msgBody.to_dict()), status = 99).save()
+        Request(requester = reqer, message = str(msgBody), status = 99).save()
         return True
     return False 
 
@@ -168,7 +192,26 @@ def sendWAMessage(mediaURLS, body, phoneNumber):
         to='whatsapp:+'+phoneNumber
     )
 
-def sendWAMessageToReqer(messageType, reqer, req = None,  checkForLastMessage = True):
+def prepareTGMessage(mediaURLS, body, tgId):  
+    json_data = {}
+    json_data["chat_id"] = tgId
+    if len(mediaURLS) > 0:
+        json_data["caption"] = body 
+        json_data["photo"] = mediaURLS[0]
+        reqType = "sendPhoto"
+    else:
+        json_data["text"] = body 
+        reqType = "sendMessage"
+    return {"data":json_data, "reqType":reqType}
+    
+def sendTGMessage(prepared_data):  
+    """
+    Prepared data should be json which includes at least `chat_id` and `text`
+    """ 
+    message_url = Variables.BOT_URL + prepared_data["reqType"]
+    requests.post(message_url, json=prepared_data["data"]) 
+
+def sendMessageToReqer(messageType, reqer, req = None,  checkForLastMessage = True):
     if checkForLastMessage == False:
         mediaURLS = []
         if req:
@@ -177,11 +220,17 @@ def sendWAMessageToReqer(messageType, reqer, req = None,  checkForLastMessage = 
         else:
             body = messages[messageType][reqer.lang]
         MessagesSent(requester = reqer, request = req, extra = body, messageType = messageType).save()
-        sendWAMessage(mediaURLS, body, reqer.phoneNumber)
+        if reqer.origin == 'whatsapp:':
+            sendWAMessage(mediaURLS, body, reqer.phoneNumber)
+        elif reqer.origin == 'telegram':
+            sendTGMessage(prepareTGMessage(mediaURLS, body, reqer.phoneNumber))
         return 
     else:
         if getMessageToBeSent(reqer, messageType):
-            sendWAMessage([], messages[messageType][reqer.lang], reqer.phoneNumber)
+            if reqer.origin == 'whatsapp:':
+                sendWAMessage([], messages[messageType][reqer.lang], reqer.phoneNumber)
+            elif reqer.origin == 'telegram':
+                sendTGMessage(prepareTGMessage([], messages[messageType][reqer.lang], reqer.phoneNumber))
 
 # send as report 1
 def sendRumorsForSubmession(reqer, q):
@@ -199,7 +248,7 @@ def sendRumorsForSubmession(reqer, q):
         q.save()
     # send a message to the user and thanking it for using the bot 
     if(len(q.requests) == 0):
-        sendWAMessageToReqer('doneWithRumorsSubmissionMessage', reqer)
+        sendMessageToReqer('doneWithRumorsSubmissionMessage', reqer)
     pass
 
 # send as checks 2 
@@ -208,23 +257,24 @@ def checkReportsInQueue(reqer, q):
     while(len(q.requests) > 0):
         req = q.requests[0]
     #    # get decider response 
-        deRes = handle_request(req.message, '1')
+        # deRes = handle_request(req.message, '1')
+        deRes = AIdecider()
         req.status = deRes
     #    # send response to user (msg text/media + decider response)
         mediaURLS = req.getImage()
         if deRes == 1:
-            sendWAMessageToReqer('itIsRumorMessage', reqer, req, False)
+            sendMessageToReqer('itIsRumorMessage', reqer, req, False)
         if deRes == 2:
-            sendWAMessageToReqer('itIsNotRumorMessage', reqer, req, False)
+            sendMessageToReqer('itIsNotRumorMessage', reqer, req, False)
         if deRes == 3:
-            sendWAMessageToReqer('noDefiniteAnswerMessage', reqer, req, False)
+            sendMessageToReqer('noDefiniteAnswerMessage', reqer, req, False)
     #    # delete it from queue
         req.save()
         q.requests.remove(req) 
         q.save()
     # send a message to the user and thanking it for using the bot 
     if(len(q.requests) == 0):
-        sendWAMessageToReqer('doneWithQueueMessages', reqer)
+        sendMessageToReqer('doneWithQueueMessages', reqer)
 
 
 def handleQueueProccessing(reqer, typeOfCheck):
@@ -238,7 +288,7 @@ def handleQueueProccessing(reqer, typeOfCheck):
             sendRumorsForSubmession(reqer, q)
     else:
         # send invalidCommand
-        sendWAMessageToReqer('invalidCommand', reqer, checkForLastMessage = False)
+        sendMessageToReqer('invalidCommand', reqer, checkForLastMessage = False)
     # unlock it
     if len(q.requests) == 0:
         q.status = 1
@@ -260,7 +310,7 @@ def jobToCheckAnalyzingScheduler():
             q = getQueue(reqer)
             if len(q.requests) > 0:
                 # seond the message to the user
-                sendWAMessageToReqer('subMessage', reqer)
+                sendMessageToReqer('subMessage', reqer)
                 # lock the queue
                 q.status = 0
                 q.save()
@@ -270,3 +320,41 @@ def jobToCheckAnalyzingScheduler():
             a.check = 0
             a.save()
             return 
+
+def unifiedMessageString(data, bot):
+    dic = {'SmsMessageSid': '', 'NumMedia': '0', \
+     'SmsSid': '', 'SmsStatus': '', \
+     'Body': '', 'To': 'telegram+388322954', 'NumSegments': '1', 'MessageSid': '', \
+     'AccountSid': '', \
+     'From': '', 'ApiVersion': '2010-04-01'}
+     
+    data = ast.literal_eval(data)
+    if 'text'in data['message']:
+        dic['Body'] =  data['message']['text'] 
+    if 'caption'in data['message']:
+        dic['Body'] =  data['message']['caption'] 
+    dic['NumMedia'] = '0' 
+    dic['SmsMessageSid'] = str(data['update_id'])
+    dic['SmsSid'] = str(data['update_id'])
+    dic['From'] = 'telegram+' + str(data['message']['chat']['id'])
+    
+    if 'video' in data['message']:
+        dic['NumMedia'] = '1'
+        dic['MediaContentType0'] =  'video/mp4'
+        filePath = bot.get_file(data['message']['video']['file_id']).file_path
+        dic['MediaUrl0'] =  filePath
+        dic["file_id"] = data['message']['video']['file_id']
+
+    if 'photo' in data['message']:
+        if len(data['message']['photo']) > 0:
+            dic['NumMedia'] = '1'
+            photo = data['message']['photo'][-1]
+            dic["file_id"] = photo['file_id']
+            dic['MediaContentType0'] =  'image/jpeg'
+            filePath = bot.get_file(photo['file_id']).file_path
+            dic['MediaUrl0'] =  filePath
+
+    return dic
+
+def AIdecider():
+    return random.randint(1,3) 

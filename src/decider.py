@@ -56,14 +56,13 @@ def register_request(query_dic, flag):
   return query
 
 def search_if_exists(query):
+  rumor = None
   if query.num_media == '0': #text based (body)
     rumor = Rumor.objects(body__exact=query.body)
     pass
   #it has media, each pic/video will be sent in an individual request.
   #We are not currently handling video
   elif query.num_media == '1':
-    print('----->')
-    print(query)
     rumor = Rumor.objects(image_hash__exact=query.image_hash)
   return rumor
   
@@ -106,13 +105,13 @@ def handle_check(query):
     count = Query.objects(body__exact=query.body, query_type = 2).count()
   if query.num_media == '1':
     count = Query.objects(image_hash__exact=query.image_hash, query_type = 2).count()
+
   if count > 15: # threshold number of spam reports
     return 1 # decider decided it is rumor
   return 2 # we have less reports to what qualified as a rumor 
   
 def handle_request(request, flag):
   connect(Variables.databaseName)
-  
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
   rumor = search_if_exists(query) #Find existing rumor
