@@ -1,10 +1,10 @@
 from flask import Flask, request, abort, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
-
+from services import jobToCheckAnalyzingScheduler
 app = Flask(__name__)
 
-import wtBot 
+import waBot 
 import tgBot
 import api
 
@@ -26,5 +26,5 @@ if __name__ == "__main__":
     # Because we care about security :)
     #TODO: lol, I broke your security pleaaase fix it I don't know how . < Dew
     # app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
-    bot.sched.start()
+    sched.start()
     app.run()

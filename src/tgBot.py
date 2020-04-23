@@ -1,6 +1,5 @@
 from variables import Variables
 from services import *
-from bot import *
 import telegram
 from __main__ import app
 import urllib.request

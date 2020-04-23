@@ -9,4 +9,4 @@ class Variables:
     bot_token = "1119456725:AAFSmRlF-kMuMFKtz7lxlgnp8mBpivLCDNY"
     bot_user_name = "AkedBot"
     URL = 'https://afe8dbd3.ngrok.io/telBot'
-    BOT_URL = 'https://api.telegram.org/bot'+Variables.bot_token+'/' 
+    BOT_URL = 'https://api.telegram.org/bot'+bot_token+'/' 
