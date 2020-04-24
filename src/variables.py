@@ -8,7 +8,7 @@ class Variables:
     databaseName = 'busters'
     bot_token = "1119456725:AAFSmRlF-kMuMFKtz7lxlgnp8mBpivLCDNY"
     bot_user_name = "AkedBot"
-    URL = 'https://013e4bc9.ngrok.io/telBot'
+    URL = 'https://aad28f1d.ngrok.io/telBot'
     BOT_URL = 'https://api.telegram.org/bot'+bot_token+'/' 
     seed = True
     min_body_length = 10
