@@ -10,7 +10,7 @@ import telegram
 import ast
 from unidecode import unidecode
 from communication import sendMessageToReqer, getMessageToBeSent
-
+from rumor import Rumor
 connect(Variables.databaseName)
 bot = telegram.Bot(Variables.bot_token) # telegram bot 
 
@@ -296,3 +296,14 @@ def unifiedMessageString(data, bot):
 
 def AIdecider():
     return random.randint(1,3) 
+
+def getTopRumors():
+    rumors = Rumor.objects.limit(10)
+    data = {"results": {"rumors":[]}}
+    if rumors:
+        for r in rumors:
+            rumor = {"message":r.body, "count": random.randint(25,150)}
+            if r.image_url:
+                rumor["url"] = r.image_url
+            data["results"]["rumors"].append(rumor)
+    return data
