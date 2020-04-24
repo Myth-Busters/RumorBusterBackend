@@ -110,19 +110,36 @@ def handle_check(query):
     return 1 # decider decided it is rumor
   return 2 # we have less reports to what qualified as a rumor 
   
+def create_rumor(query_dic):
+  image_local_path, hash = None, None
+  if query_dic.get("NumMedia") == '1':
+    image_local_path, hash = save_media(query_dic.get("MediaUrl0"), query_dic.get("MediaContentType0"))
+  rumor = Rumor(body = query_dic.get("body"))# e.g. body
+  rumor.image_url = query_dic.get("MediaUrl0")
+  rumor.image_local_path = image_local_path
+  rumor.image_hash = hash # hash this
+  rumor.video_url = "Not Supported" #get binary in a different field later
+  rumor.save()
+  return rumor
+  
 def handle_request(request, flag):
   connect(Variables.databaseName)
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
-  rumor = search_if_exists(query) #Find existing rumor
+  record = search_if_exists(query) #Find existing rumor
   if flag == '1': #check
-    if not rumor:
+    if not record:
       return 3 # not a rumor because rumor does not exist ||  
     return handle_check(query)
   elif flag == '2': #report
-    return 3 
+      if not record:
+        rumor = create_rumor(parsed_req)
+        query.rumor = rumor
+        query.save()
+        return 3
+      return 400 #bad request, this should never happen.
   elif flag == '3':#garbage/other
     return 99 # Request will not be processed
 # TEST CALL
 
-#handle_request("{'SmsMessageSid': 'SM4f4e64475b5d6788a26f76a9dfc4d441', 'NumMedia': '0', 'SmsSid': 'SM4f4e64475b5d6788a26f76a9dfc4d441', 'SmsStatus': 'received', 'Body': 'ddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديد اللي راح يجي', 'To': 'whatsapp:+14155238886', 'NumSegments': '1', 'MessageSid': 'SM4f4e64475b5d6788a26f76a9dfc4d441', 'AccountSid': 'ACfba82004d8ebfe9a436865fe9a78b198', 'From': 'whatsapp:+966590103666', 'ApiVersion': '2010-04-01'}",'1')
+handle_request("{'SmsMessageSid': 'SM4f4e64475b5d6788a26f76a9dfc4d441', 'NumMedia': '0', 'SmsSid': 'SM4f4e64475b5d6788a26f76a9dfc4d441', 'SmsStatus': 'received', 'Body': 'ddfsasdfsdfsadfديدddfsasdfsdf1sadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديدddfsasdfsdfsadfديد اللي راح يجي', 'To': 'whatsapp:+14155238886', 'NumSegments': '1', 'MessageSid': 'SM4f4e64475b5d6788a26f76a9dfc4d441', 'AccountSid': 'ACfba82004d8ebfe9a436865fe9a78b198', 'From': 'whatsapp:+966590103666', 'ApiVersion': '2010-04-01'}",'2')
