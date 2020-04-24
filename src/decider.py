@@ -76,7 +76,7 @@ def handle_request2(request, flag):
   
   #if the rumor exists link it, otherwise register if it's a report
   if rumor:
-    query.rumor = rumor
+    query.linked_rumor = rumor
     query.save()
   elif query.query_type == '3':
     rumor = Rumor(body = query.body, image_url = query.image_url, image_local_path = query.image_local_path, image_hash = query.image_hash, video_url = query.video_url)# e.g. image/jpeg
@@ -135,7 +135,7 @@ def handle_request(request, flag):
   elif flag == '2': #report
       if not record:
         rumor = create_rumor(parsed_req)
-        query.rumor = rumor
+        query.linked_rumor = rumor
         query.save()
       rumor.report_counter = rumor.report_counter  + 1
       rumor.save()
