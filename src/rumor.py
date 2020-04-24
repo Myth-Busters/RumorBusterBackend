@@ -6,3 +6,4 @@ class Rumor(Document):
   image_local_path = StringField()
   image_hash = StringField()
   video_url = StringField()
+  report_counter = IntField()
