@@ -140,7 +140,6 @@ def handle_request(request, flag):
       rumor.report_counter = rumor.report_counter  + 1
       rumor.save()
       return 3
-      return 400 #bad request, this should never happen.
   elif flag == '3':#garbage/other
     return 99 # Request will not be processed
 # TEST CALL
