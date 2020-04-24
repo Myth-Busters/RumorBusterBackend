@@ -1,12 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
+
 from flask import Flask, request, abort, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import re, json
 from __main__ import app
-
+from services import getTopRumors
+from decider import *
+from messages import *
 # app = Flask(__name__, static_url_path='/static', template_folder='templates')
 
+cors = CORS(app)
+app.config['JSON_AS_ASCII'] = False
 
 # Rate limit
 limiter = Limiter (
@@ -15,81 +22,60 @@ limiter = Limiter (
     default_limits=["14400 per day", "300 per hour", "100 per minute"]
 )
 
+#TODO handle images, input validation, authinication, 
 
-@app.route("/", methods=['GET','POST'])
+
+@app.route("/validateMessage", methods=['POST'])
+@cross_origin()
 @limiter.limit("14400/day;300/hour;100/minute")
-def root():
-    return "Bruhhhhh!!"
-
-
-@app.route("/rumor", methods=['POST'])
-@limiter.limit("14400/day;300/hour;100/minute")
-def rumor():
+def validateMessage():
     try:
         content = request.json
-        text = content['text']
-        img_url = content['imgurl']
-        payload = content['payload']
+        if connect:
+            message = content["message"]
+            lang = content["language"]
+            d = {} 
+            d['Body'] =  message
+            deRes = handle_request(str(d), "1")
+            if deRes == 3:
+                return {"message": messages["noDefiniteAnswerMessage"][lang]}
+            if deRes == 1:
+                return {"message": messages["itIsRumorMessage"][lang]}
+            if deRes == 2:
+                return {"message": messages["itIsNotRumorMessage"][lang]}
 
-        # Sanitation
-        text = re.sub(r'[\W_]+', '', text)
-        # img_url spatial sanitization, I assume '?' is also going to be prohibited
-        img_url = re.sub(r"[-()\"#@;<>{}`+=~|.!?,]", '', img_url)
-        payload = re.sub(r'[\W_]+', '', payload)
-
-        # Fawaz calls
-        pass
-
-
-        return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
-    except:
+        return json.dumps({'success': True}), 500, {'ContentType': 'application/json'}
+    except Exception as e:
+        print(e)
         return abort(500)
 
 
-@app.route("/api2", methods=['POST'])
+@app.route("/reportRumor", methods=['POST'])
+@cross_origin()
 @limiter.limit("14400/day;300/hour;100/minute")
-def api2():
+def reportRumor():
     try:
         content = request.json
-        text = content['text']
-        img_url = content['imgurl']
-        payload = content['payload']
+        if connect:
+            message = content["message"]
+            lang = content["language"]
+            d = {} 
+            d['Body'] =  message
+            deRes = handle_request(str(d), "2")
+            return {"message": messages["doneWithRumorsSubmissionMessageApp"][lang]}
 
-        # Sanitation
-        text = re.sub(r'[\W_]+', '', text)
-        # img_url spatial sanitization, I assume '?' is also going to be prohibited
-        img_url = re.sub(r"[-()\"#@;<>{}`+=~|.!?,]", '', img_url)
-        payload = re.sub(r'[\W_]+', '', payload)
-
-        # Fawaz calls
-        pass
-
-
-        return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
-    except:
+        return json.dumps({'success': True}), 500, {'ContentType': 'application/json'}
+    except Exception as e:
+        print(e)
         return abort(500)
 
-
-@app.route("/api3", methods=['GET'])
+@app.route("/getTopRumors", methods=['GET'])
+@cross_origin()
 @limiter.limit("14400/day;300/hour;100/minute")
-def api3():
+def getTopRumors():
     try:
-        # Get data from the database
-        # data = function()
-
-        # A sorted array of data \/
-        jsonData =   {
-        "results": [
-            {"rumour":"Hello World.", "id":1},
-            {"rumour":"Hello World.", "id":2},
-            {"rumour":"Hello World.", "id":3},
-            {"rumour":"Hello World.", "id":4},
-            {"rumour":"Hello World.", "id":5},
-            {"rumour":"Hello World.", "id":6}
-            ]
-        }
-        # jsonData =          {'success': True}
-        return json.dumps(jsonData), 200, {'ContentType': 'application/json'}
+        jsonData = getTopRumors()
+        return jsonify(jsonData)
     except:
         return abort(500)
 

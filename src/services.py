@@ -3,16 +3,15 @@ from models import Requester, Request, RequestQueue, AnalyzingScheduler, Message
 from messages import *
 from datetime import datetime, timedelta
 from variables import Variables
-from twilio.rest import Client
 import random
 from decider import handle_request
 import requests  
 import telegram
 import ast
 from unidecode import unidecode
-
+from communication import sendMessageToReqer, getMessageToBeSent
+from rumor import Rumor
 connect(Variables.databaseName)
-client = Client(Variables.account_sid, Variables.auth_token) # twilio client
 bot = telegram.Bot(Variables.bot_token) # telegram bot 
 
 #TODO error handlign 
@@ -153,19 +152,6 @@ def updateASifQueueEmpty(reqer, q):
             a.check = 0
             a.save()
 
-def createNewMessage(reqer, messageType, request = None, extra = None):
-    MessagesSent(requester = reqer, messageType = messageType, request = request, extra = extra).save()
-
-# if the 
-def getMessageToBeSent(reqer, messageType, req = None, extra = None): # this will return none if message has been sent within an amount of time 
-    if reqer and messageType:
-        m = MessagesSent.objects(requester=reqer).order_by('-created').first()
-        if m:
-            if m.messageType == messageType:
-                if (datetime.now() - m.created < timedelta(seconds=Variables.secondsToWaitBeforeSendingSameMessage)):
-                    return False    
-    createNewMessage(reqer, messageType, request = None, extra = None)   
-    return True
 
 def handleSubmession(reqer, msg):
     # get queue of the and check if it is open for busniess 
@@ -183,54 +169,6 @@ def handleSubmession(reqer, msg):
     increaseSchedulerTime(reqer)
     return None
 
-def sendWAMessage(mediaURLS, body, phoneNumber):
-    message = client.messages \
-    .create(
-        media_url=mediaURLS,
-        from_=Variables.whatsappSender,
-        body=body,
-        to='whatsapp:+'+phoneNumber
-    )
-
-def prepareTGMessage(mediaURLS, body, tgId):  
-    json_data = {}
-    json_data["chat_id"] = tgId
-    if len(mediaURLS) > 0:
-        json_data["caption"] = body 
-        json_data["photo"] = mediaURLS[0]
-        reqType = "sendPhoto"
-    else:
-        json_data["text"] = body 
-        reqType = "sendMessage"
-    return {"data":json_data, "reqType":reqType}
-    
-def sendTGMessage(prepared_data):  
-    """
-    Prepared data should be json which includes at least `chat_id` and `text`
-    """ 
-    message_url = Variables.BOT_URL + prepared_data["reqType"]
-    requests.post(message_url, json=prepared_data["data"]) 
-
-def sendMessageToReqer(messageType, reqer, req = None,  checkForLastMessage = True):
-    if checkForLastMessage == False:
-        mediaURLS = []
-        if req:
-            body = req.getBody()[0:50] + '....' + '\n\n' +  messages[messageType][reqer.lang]
-            mediaURLS = req.getImage()
-        else:
-            body = messages[messageType][reqer.lang]
-        MessagesSent(requester = reqer, request = req, extra = body, messageType = messageType).save()
-        if reqer.origin == 'whatsapp:':
-            sendWAMessage(mediaURLS, body, reqer.phoneNumber)
-        elif reqer.origin == 'telegram':
-            sendTGMessage(prepareTGMessage(mediaURLS, body, reqer.phoneNumber))
-        return 
-    else:
-        if getMessageToBeSent(reqer, messageType):
-            if reqer.origin == 'whatsapp:':
-                sendWAMessage([], messages[messageType][reqer.lang], reqer.phoneNumber)
-            elif reqer.origin == 'telegram':
-                sendTGMessage(prepareTGMessage([], messages[messageType][reqer.lang], reqer.phoneNumber))
 
 # send as report 1
 def sendRumorsForSubmession(reqer, q):
@@ -257,8 +195,8 @@ def checkReportsInQueue(reqer, q):
     while(len(q.requests) > 0):
         req = q.requests[0]
     #    # get decider response 
-        # deRes = handle_request(req.message, '1')
-        deRes = AIdecider()
+        deRes = handle_request(req.message, '1')
+        # deRes = AIdecider()
         req.status = deRes
     #    # send response to user (msg text/media + decider response)
         mediaURLS = req.getImage()
@@ -358,3 +296,14 @@ def unifiedMessageString(data, bot):
 
 def AIdecider():
     return random.randint(1,3) 
+
+def getTopRumors():
+    rumors = Rumor.objects.limit(10)
+    data = {"results": {"rumors":[]}}
+    if rumors:
+        for r in rumors:
+            rumor = {"message":r.body, "count": random.randint(25,150)}
+            if r.image_url:
+                rumor["url"] = r.image_url
+            data["results"]["rumors"].append(rumor)
+    return data

@@ -26,5 +26,6 @@ if __name__ == "__main__":
     # Because we care about security :)
     #TODO: lol, I broke your security pleaaase fix it I don't know how . < Dew
     # app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
+    tgBot.set_webhook()
     sched.start()
     app.run()

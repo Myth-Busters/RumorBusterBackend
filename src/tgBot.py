@@ -4,7 +4,7 @@ import telegram
 from __main__ import app
 import urllib.request
 from flask import Flask, request
-
+from communication import sendTGMessage, prepareTGMessage
 bot = telegram.Bot(Variables.bot_token)
 
 

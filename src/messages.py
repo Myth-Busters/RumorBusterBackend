@@ -65,6 +65,14 @@ messages = {
                 + '\n\n Thank You for helping in cleaning up the internet! '
         },
 
+        'doneWithRumorsSubmissionMessageApp' : {
+            'ar': 'تم التبليغ بنحاج عن الإشاعة بنجاح' \
+                + '\n\n شكرًا لحرصك على مصادقية المعلومات على الإنترنت',
+            'en': 'Successfully, reported the rumor.' \
+                + '\n\n Thank You for helping in cleaning up the internet! '
+        },
+
+
         'exceededLimitMessage': {
             'ar': 'لقد أرسلت الحد الأعلى لعدد الرسائل التي تستطيع التحقق منها دفعة واحدة.' \
                 + '\n يرجى الإنتظار ريثما أقوم بالتحقق من الرسائل من ثم تستطيع إرسال رسائل جديدة',

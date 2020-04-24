@@ -5,9 +5,9 @@ Image
 imagehash
 telebot
 Unidecode
+flask-cors
 python-telegram-bot
 flask_limiter
-flask-cors
 certifi==2019.9.11
 chardet==3.0.4
 Click==7.0
