@@ -7,9 +7,10 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import re, json
 from __main__ import app
-from services import getSrotedRumors
+from services import getSrotedRumors, saveImage
 from decider import *
 from messages import *
+import base64
 # app = Flask(__name__, static_url_path='/static', template_folder='templates')
 
 cors = CORS(app)
@@ -28,12 +29,15 @@ limiter = Limiter (
 @app.route("/validateMessage", methods=['POST'])
 @cross_origin()
 def validateMessage():
+    d = {} 
     try:
         content = request.json
-        if connect:
+        if content:
+            if content['uri'] and len(content['uri']) > 0:
+                d['localPath'] =  saveImage(content['uri'])
+                d['img'] = content['uri']
             message = content["message"]
             lang = content["language"]
-            d = {} 
             d['Body'] =  message
             deRes = handle_request(str(d), "1")
             if deRes == 3:
@@ -48,16 +52,19 @@ def validateMessage():
         print(e)
         return abort(500)
 
-
+            
 @app.route("/reportRumor", methods=['POST'])
 @cross_origin()
 def reportRumor():
-    try:
+    try: 
+        d = {} 
         content = request.json
-        if connect:
+        if content:
+            if content['uri'] and len(content['uri']) > 0:
+                d['localPath'] =  saveImage(content['uri'])
+                d['img'] = content['uri']
             message = content["message"]
             lang = content["language"]
-            d = {} 
             d['Body'] =  message
             deRes = handle_request(str(d), "2")
             return {"message": messages["doneWithRumorsSubmissionMessageApp"][lang]}
@@ -76,9 +83,3 @@ def getTopRumors():
     except Exception as e:
         print(e)
         return abort(500)
-
-
-
-# if __name__ == "__main__":
-#     # Because we care about security :)
-#     app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))

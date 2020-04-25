@@ -10,6 +10,11 @@ import telegram
 import ast
 from unidecode import unidecode
 from communication import sendMessageToReqer, getMessageToBeSent
+import time 
+import base64
+import os
+import errno
+
 connect(Variables.databaseName)
 bot = telegram.Bot(Variables.bot_token) # telegram bot 
 
@@ -306,3 +311,20 @@ def getSrotedRumors(numberOfRumors):
                 rumor["url"] = r.image_url
             data["results"]["rumors"].append(rumor)
     return data
+
+
+def saveImage(img):
+    image = img.replace(' ', '+')
+    imgdata = base64.b64decode(image)
+    mage_local_path = "images" +"/" + str(time.time()) + ".jpg"
+    if not os.path.exists(os.path.dirname(mage_local_path)):
+        try:
+            os.makedirs(os.path.dirname(mage_local_path))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+    with open(mage_local_path, 'wb') as f:
+            f.write(imgdata)
+    
+    return mage_local_path

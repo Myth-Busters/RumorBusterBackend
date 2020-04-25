@@ -27,12 +27,19 @@ def save_media(img_url, media_type):
   else:
     hash = ""
   return image_local_path, hash
-  
+
+def hash_local_file(localPath):
+  file = Image.open(localPath)
+  if file:
+    return str(imagehash.average_hash(file))
+
 def register_request(query_dic, flag):
   image_local_path, hash = None, None
   if query_dic.get("NumMedia") == '1':
     image_local_path, hash = save_media(query_dic.get("MediaUrl0"), query_dic.get("MediaContentType0"))
-  
+  if query_dic.get("localPath") and query_dic.get("img"):
+    image_local_path, hash =  query_dic.get("localPath"), hash_local_file(query_dic.get("localPath"))
+
   query = Query(media_type = query_dic.get("MediaContentType0"))# e.g. image/jpeg
   query.sms_message_id = query_dic.get("SmsMessageSid")
   query.num_media = query_dic.get("NumMedia")
@@ -107,12 +114,16 @@ def handle_check(query):
 
   if count > 15: # threshold number of spam reports
     return 1 # decider decided it is rumor
-  return 2 # we have less reports to what qualified as a rumor 
+  return 2 # we have less reports to what qualifis as a rumor 
   
 def create_rumor(query_dic):
   image_local_path, hash = None, None
   if query_dic.get("NumMedia") == '1':
     image_local_path, hash = save_media(query_dic.get("MediaUrl0"), query_dic.get("MediaContentType0"))
+
+  if query_dic.get("localPath") and query_dic.get("img"):
+    image_local_path, hash =  query_dic.get("localPath"), hash_local_file(query_dic.get("localPath"))
+   
   rumor = Rumor(body = query_dic.get("body"))# e.g. body
   rumor.image_url = query_dic.get("MediaUrl0")
   rumor.image_local_path = image_local_path
@@ -132,10 +143,13 @@ def handle_request(request, flag):
       return 3 # not a rumor because rumor does not exist ||  
     return handle_check(query)
   elif flag == '2': #report
+      rumor = None
       if not record:
         rumor = create_rumor(parsed_req)
         query.linked_rumor = rumor
         query.save()
+      if not rumor:
+        rumor = create_rumor(parsed_req)
       rumor.report_counter = rumor.report_counter  + 1
       rumor.save()
       return 3

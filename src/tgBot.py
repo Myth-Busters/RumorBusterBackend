@@ -14,15 +14,15 @@ def set_webhook():
 
 @app.route('/telBot', methods=['POST'])
 def telBot(): 
-    try:
+    # try:
         update = str(telegram.Update.de_json(request.get_json(force=True), bot))
         recMsg = unifiedMessageString(update, bot)
         reqer = getRequester(recMsg['From'])
         m = commander(recMsg, reqer)
         if m:
            sendTGMessage(prepareTGMessage([],m, reqer.phoneNumber))
-    except Exception as e:
-        print('error:')
-        print(e)
+    # except Exception as e:
+    #     print('error:')
+    #     print(e)
+    #     return ''
         return ''
-    return ''
