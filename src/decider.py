@@ -3,8 +3,7 @@ import requests
 from werkzeug.datastructures import CombinedMultiDict, MultiDict, ImmutableMultiDict
 from PIL import Image
 import imagehash
-from query import Query
-from rumor import Rumor
+from models import Query, Rumor
 import os
 import ast
 from variables import Variables

@@ -1,14 +1,18 @@
+import ast
+
 class Variables:
-    secondsToWaitBeforeSendingSameMessage = 10
-    secondsToIncreaseSchedulerTimeBy = 2
-    QueueLimitPerRequester = 7
-    account_sid = 'ACfba82004d8ebfe9a436865fe9a78b198'
-    auth_token = 'cb49bcca04651d61eb9462edda9a3aae'
-    whatsappSender='whatsapp:+14155238886'
-    databaseName = 'busters'
-    bot_token = "1119456725:AAFSmRlF-kMuMFKtz7lxlgnp8mBpivLCDNY"
-    bot_user_name = "AkedBot"
-    URL = 'https://aad28f1d.ngrok.io/telBot'
-    BOT_URL = 'https://api.telegram.org/bot'+bot_token+'/' 
-    seed = True
-    min_body_length = 10
+     with open('./config.json') as dataFile:
+        config =  ast.literal_eval(dataFile.read())
+        secondsToWaitBeforeSendingSameMessage = config['logic']['secondsToWaitBeforeSendingSameMessage']
+        secondsToIncreaseSchedulerTimeBy = config['logic']['secondsToIncreaseSchedulerTimeBy']
+        QueueLimitPerRequester = config['logic']['QueueLimitPerRequester']
+        min_body_length = config['logic']['min_body_length']
+        account_sid = config['tokens']['account_sid']
+        auth_token = config['tokens']['auth_token']
+        whatsappSender=config['bots']['whatsappSender']
+        databaseName = config['database']['name']
+        bot_token = config['tokens']['bot_token']
+        bot_user_name = config['bots']['telegramBotName']
+        URL = config['links']['server'] + config['links']['telegramBot']
+        BOT_URL = config['links']['telegramApi']+bot_token+'/' 
+        seed = True

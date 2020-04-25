@@ -7,7 +7,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import re, json
 from __main__ import app
-from services import getTopRumors
+from services import getSrotedRumors
 from decider import *
 from messages import *
 # app = Flask(__name__, static_url_path='/static', template_folder='templates')
@@ -27,7 +27,6 @@ limiter = Limiter (
 
 @app.route("/validateMessage", methods=['POST'])
 @cross_origin()
-@limiter.limit("14400/day;300/hour;100/minute")
 def validateMessage():
     try:
         content = request.json
@@ -38,11 +37,11 @@ def validateMessage():
             d['Body'] =  message
             deRes = handle_request(str(d), "1")
             if deRes == 3:
-                return {"message": messages["noDefiniteAnswerMessage"][lang]}
+                return {"message": messages["noDefiniteAnswerMessage"][lang], 'canReport': True}
             if deRes == 1:
-                return {"message": messages["itIsRumorMessage"][lang]}
+                return {"message": messages["itIsRumorMessage"][lang], 'canReport': False}
             if deRes == 2:
-                return {"message": messages["itIsNotRumorMessage"][lang]}
+                return {"message": messages["itIsNotRumorMessage"][lang], 'canReport': False}
 
         return json.dumps({'success': True}), 500, {'ContentType': 'application/json'}
     except Exception as e:
@@ -52,7 +51,6 @@ def validateMessage():
 
 @app.route("/reportRumor", methods=['POST'])
 @cross_origin()
-@limiter.limit("14400/day;300/hour;100/minute")
 def reportRumor():
     try:
         content = request.json
@@ -71,13 +69,14 @@ def reportRumor():
 
 @app.route("/getTopRumors", methods=['GET'])
 @cross_origin()
-@limiter.limit("14400/day;300/hour;100/minute")
 def getTopRumors():
     try:
-        jsonData = getTopRumors()
+        jsonData = getSrotedRumors(10)
         return jsonify(jsonData)
-    except:
+    except Exception as e:
+        print(e)
         return abort(500)
+
 
 
 # if __name__ == "__main__":

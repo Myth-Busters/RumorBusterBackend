@@ -10,7 +10,7 @@ bot = telegram.Bot(Variables.bot_token)
 
 @app.route('/setwebhook', methods=['GET'])
 def set_webhook():
-    contents = urllib.request.urlopen("https://api.telegram.org/bot1119456725:AAFSmRlF-kMuMFKtz7lxlgnp8mBpivLCDNY/setWebHook?url="+Variables.URL).read()
+    contents = urllib.request.urlopen("https://api.telegram.org/bot"+Variables.bot_token+"/setWebHook?url="+Variables.URL).read()
 
 @app.route('/telBot', methods=['POST'])
 def telBot(): 

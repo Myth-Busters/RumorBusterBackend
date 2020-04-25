@@ -1,5 +1,5 @@
 from mongoengine import connect
-from models import Requester, Request, RequestQueue, AnalyzingScheduler, MessagesSent
+from models import Requester, Request, RequestQueue, AnalyzingScheduler, MessagesSent, Rumor
 from messages import *
 from datetime import datetime, timedelta
 from variables import Variables
@@ -10,7 +10,6 @@ import telegram
 import ast
 from unidecode import unidecode
 from communication import sendMessageToReqer, getMessageToBeSent
-from rumor import Rumor
 connect(Variables.databaseName)
 bot = telegram.Bot(Variables.bot_token) # telegram bot 
 
@@ -297,12 +296,12 @@ def unifiedMessageString(data, bot):
 def AIdecider():
     return random.randint(1,3) 
 
-def getTopRumors():
-    rumors = Rumor.objects.limit(10)
+def getSrotedRumors(numberOfRumors):
+    rumors = Rumor.objects.order_by('-report_counter').limit(numberOfRumors)
     data = {"results": {"rumors":[]}}
     if rumors:
         for r in rumors:
-            rumor = {"message":r.body, "count": random.randint(25,150)}
+            rumor = {"message":r.body, "count": r.report_counter}
             if r.image_url:
                 rumor["url"] = r.image_url
             data["results"]["rumors"].append(rumor)

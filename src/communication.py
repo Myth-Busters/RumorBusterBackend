@@ -66,3 +66,4 @@ def getMessageToBeSent(reqer, messageType, req = None, extra = None): # this wil
                     return False    
     MessagesSent(requester = reqer, messageType = messageType, request = req, extra = extra).save()
     return True
+print(Variables.BOT_URL)
