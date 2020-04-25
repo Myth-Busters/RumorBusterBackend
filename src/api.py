@@ -11,7 +11,6 @@ from services import getSrotedRumors, saveImage
 from decider import *
 from messages import *
 import base64
-# app = Flask(__name__, static_url_path='/static', template_folder='templates')
 
 cors = CORS(app)
 app.config['JSON_AS_ASCII'] = False
@@ -23,9 +22,7 @@ limiter = Limiter (
     default_limits=["14400 per day", "300 per hour", "100 per minute"]
 )
 
-#TODO handle images, input validation, authinication, 
-
-
+#TODO  authinication, 
 @app.route("/validateMessage", methods=['POST'])
 @cross_origin()
 def validateMessage():
@@ -40,12 +37,12 @@ def validateMessage():
             lang = content["language"]
             d['Body'] =  message
             deRes = handle_request(str(d), "1")
-            if deRes == 3:
-                return {"message": messages["noDefiniteAnswerMessage"][lang], 'canReport': True}
             if deRes == 1:
                 return {"message": messages["itIsRumorMessage"][lang], 'canReport': False}
             if deRes == 2:
                 return {"message": messages["itIsNotRumorMessage"][lang], 'canReport': False}
+            if deRes == 3:
+                return {"message": messages["noDefiniteAnswerMessage"][lang], 'canReport': True}
 
         return json.dumps({'success': True}), 500, {'ContentType': 'application/json'}
     except Exception as e:
