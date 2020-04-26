@@ -28,4 +28,4 @@ if __name__ == "__main__":
     # app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
     tgBot.set_webhook()
     sched.start()
-    app.run()
+    app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))

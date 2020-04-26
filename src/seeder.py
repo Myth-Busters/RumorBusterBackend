@@ -4,7 +4,10 @@ from models import Fact, Rumor
 import ast
 import random
 
-connect(Variables.databaseName)
+connect(db=Variables.databaseName,
+        host="mongodb",
+        username="user-test",
+        password="password-test")
 
 if Variables.seed:
     with open('../RumorsFacts.json') as dataFile:

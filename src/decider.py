@@ -74,7 +74,11 @@ def search_if_exists(query):
   
   return rumor
 def handle_request2(request, flag):
-  connect(Variables.databaseName)
+  connect(db=Variables.databaseName,
+        host="mongodb",
+        username="user-test",
+        password="password-test")
+  #connect(Variables.databaseName)
   
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
@@ -134,7 +138,10 @@ def create_rumor(query_dic):
   return rumor
   
 def handle_request(request, flag):
-  connect(Variables.databaseName)
+  connect(db=Variables.databaseName,
+        host="mongodb",
+        username="user-test",
+        password="password-test")
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
   record = search_if_exists(query) #Find existing rumor

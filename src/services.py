@@ -15,7 +15,11 @@ import base64
 import os
 import errno
 
-connect(Variables.databaseName)
+connect(db=Variables.databaseName,
+        host="mongodb",
+        username="rumor",
+        password="password-test")
+
 bot = telegram.Bot(Variables.bot_token) # telegram bot 
 
 #TODO error handlign 
