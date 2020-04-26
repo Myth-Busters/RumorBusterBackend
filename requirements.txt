@@ -18,7 +18,7 @@ Jinja2==2.10.3
 MarkupSafe==1.1.1
 PyJWT==1.7.1
 pytz==2019.3
-requests==2.7.0
+requests==2.20.0
 six==1.13.0
 twilio==6.33.1
 urllib3==1.25.7
