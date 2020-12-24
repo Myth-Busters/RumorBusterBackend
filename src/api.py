@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 from flask import Flask, request, abort, jsonify
 from flask_cors import CORS, cross_origin
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import re, json
-from __main__ import app
+from main import app
 from services import getSrotedRumors, saveImage
 from decider import *
 from messages import *
@@ -22,11 +22,11 @@ limiter = Limiter (
     default_limits=["14400 per day", "300 per hour", "100 per minute"]
 )
 
-#TODO  authinication, 
+#TODO  authinication,
 @app.route("/validateMessage", methods=['POST'])
 @cross_origin()
 def validateMessage():
-    d = {} 
+    d = {}
     try:
         content = request.json
         if content:
@@ -49,12 +49,12 @@ def validateMessage():
         print(e)
         return abort(500)
 
-            
+
 @app.route("/reportRumor", methods=['POST'])
 @cross_origin()
 def reportRumor():
-    try: 
-        d = {} 
+    try:
+        d = {}
         content = request.json
         if content:
             if content['uri'] and len(content['uri']) > 0:

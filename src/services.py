@@ -5,25 +5,22 @@ from datetime import datetime, timedelta
 from variables import Variables
 import random
 from decider import handle_request
-import requests  
+import requests
 import telegram
 import ast
 from unidecode import unidecode
 from communication import sendMessageToReqer, getMessageToBeSent
-import time 
+import time
 import base64
 import os
 import errno
 
-connect(db=Variables.databaseName,
-        host="mongodb",
-        username="rumor",
-        password="password-test")
+connect(host=Variables.DB_CONNECTION)
 
-bot = telegram.Bot(Variables.bot_token) # telegram bot 
+bot = telegram.Bot(Variables.bot_token) # telegram bot
 
-#TODO error handlign 
-#TODO Handle telgram 
+#TODO error handlign
+#TODO Handle telgram
 def commander(msg, reqer):
     if not reqer:
          return messages['greetingmessage']['ar']
@@ -31,34 +28,34 @@ def commander(msg, reqer):
     if incoming_msg == '0':
         updateLangPref(reqer)
         return messages['langChange'][reqer.lang]
-    
+
     if unidecode(incoming_msg) == '1' or unidecode(incoming_msg) == '2':
         handleQueueProccessing(reqer, unidecode(incoming_msg))
         return
     if requestsEliminator(msg, reqer):
         return messages['noProcessingForYou'][reqer.lang]
-    # submession handling 
+    # submession handling
     m = handleSubmession(reqer, msg)
     return m
-    
+
 def requestsEliminator(msgBody, reqer):
     text = msgBody['Body'].lower()
     numOfMedia = msgBody['NumMedia']
     if numOfMedia == '0' and len(text) < 10:  # change latter to 150
         Request(requester = reqer, message = str(msgBody), status = 99).save()
         return True
-    return False 
+    return False
 
 def greetingMsg(fr):
-    info = fr.split('+')  
+    info = fr.split('+')
     r = Requester.objects(phoneNumber=info[1]).first()
     if not r:
         r = Requester(origin=info[0] ,phoneNumber=info[1]).save()
         return messages['greetingmessage'][r.lang]
-      
-def createRequester(fr): # from 
+
+def createRequester(fr): # from
     if fr:
-        info = fr.split('+')  
+        info = fr.split('+')
         r = Requester.objects(phoneNumber=info[1]).first()
         if not r:
             Requester(origin=info[0] ,phoneNumber=info[1]).save()
@@ -71,12 +68,12 @@ def updateLangPref(reqer):
 
 def getRequestsForReqtesrt(reqer):
     if reqer:
-        return Request.objects(requester=reqer).all() 
+        return Request.objects(requester=reqer).all()
 
-def getRequester(fr): 
+def getRequester(fr):
     r = None
     if fr:
-        info = fr.split('+')  
+        info = fr.split('+')
         r = Requester.objects(phoneNumber=info[1]).first()
         if not r:
             r = createRequester(fr)
@@ -104,7 +101,7 @@ def getQueue(reqer):
 
 def addToQueue(reqer, req):
     q = getQueue(reqer)
-    if q.status == 1: # if queue is unlocked (open for busniess): 
+    if q.status == 1: # if queue is unlocked (open for busniess):
         q.requests.append(req)
         q.save()
 
@@ -114,24 +111,24 @@ def getLastReqFromQueue(reqer):
         return q.requests[-1]
     return None
 
-def getAnalyzingScheduler(reqer): # if it doesn't exist, create one and return it 
+def getAnalyzingScheduler(reqer): # if it doesn't exist, create one and return it
     a = AnalyzingScheduler.objects(requester=reqer).first()
     if not a:
         a = AnalyzingScheduler(requester = reqer).save()
     return a
 
 def increaseSchedulerTime(reqer):
-    a = getAnalyzingScheduler(reqer) 
+    a = getAnalyzingScheduler(reqer)
     last_req_in_q = getLastReqFromQueue(reqer)
     if last_req_in_q and last_req_in_q.status == 0:
         check_at = last_req_in_q.created + timedelta(seconds=Variables.secondsToIncreaseSchedulerTimeBy)
-        a.check_at = check_at 
+        a.check_at = check_at
         a.check = 1
         a.save()
         return
     a.check = 0
     a.save()
-    
+
 
 def popFromQueue(reqer):
     q = getQueue(reqer)
@@ -149,7 +146,7 @@ def checkLimitOfTheQueue(reqer, q):
             q.save()
     return q
 
-# change AnalyzingScheduler check to 1 if queue is locked and  
+# change AnalyzingScheduler check to 1 if queue is locked and
 def updateASifQueueEmpty(reqer, q):
     a = getAnalyzingScheduler(reqer)
     if q and a:
@@ -162,16 +159,16 @@ def updateASifQueueEmpty(reqer, q):
 
 
 def handleSubmession(reqer, msg):
-    # get queue of the and check if it is open for busniess 
+    # get queue of the and check if it is open for busniess
     q = getQueue(reqer)
     q = checkLimitOfTheQueue(reqer, q) # update status of queue and get an updated doceumnt
-    if q.status == 0: 
+    if q.status == 0:
         if len(q.requests) < Variables.QueueLimitPerRequester:
             if getMessageToBeSent(reqer, 'inProgressMessage'):
                 return messages['inProgressMessage'][reqer.lang]
         else:
             if getMessageToBeSent(reqer, 'exceededLimitMessage'):
-                return messages['exceededLimitMessage'][reqer.lang]   
+                return messages['exceededLimitMessage'][reqer.lang]
 
     createNewRequest(reqer,msg)
     increaseSchedulerTime(reqer)
@@ -181,28 +178,28 @@ def handleSubmession(reqer, msg):
 # send as report 1
 def sendRumorsForSubmession(reqer, q):
     # for every request in the queue
-    #    # send it as with a flag that is is a rumor 
-    #    # delete it from queue  
-    # send a message to the user and thanking it for using the bot 
+    #    # send it as with a flag that is is a rumor
+    #    # delete it from queue
+    # send a message to the user and thanking it for using the bot
     while(len(q.requests) > 0):
         req = q.requests[0]
         req.status = 3
         handle_request(req.message, '2')
-    #    # delete it from queue  
+    #    # delete it from queue
         req.save()
-        q.requests.remove(req) 
+        q.requests.remove(req)
         q.save()
-    # send a message to the user and thanking it for using the bot 
+    # send a message to the user and thanking it for using the bot
     if(len(q.requests) == 0):
         sendMessageToReqer('doneWithRumorsSubmissionMessage', reqer)
     pass
 
-# send as checks 2 
+# send as checks 2
 def checkReportsInQueue(reqer, q):
-    # for every request in the queue 
+    # for every request in the queue
     while(len(q.requests) > 0):
         req = q.requests[0]
-    #    # get decider response 
+    #    # get decider response
         deRes = handle_request(req.message, '1')
         # deRes = AIdecider()
         req.status = deRes
@@ -216,16 +213,16 @@ def checkReportsInQueue(reqer, q):
             sendMessageToReqer('noDefiniteAnswerMessage', reqer, req, False)
     #    # delete it from queue
         req.save()
-        q.requests.remove(req) 
+        q.requests.remove(req)
         q.save()
-    # send a message to the user and thanking it for using the bot 
+    # send a message to the user and thanking it for using the bot
     if(len(q.requests) == 0):
         sendMessageToReqer('doneWithQueueMessages', reqer)
 
 
 def handleQueueProccessing(reqer, typeOfCheck):
-    # find a locked queue and has requests  
-    # lock it if it is not already locked 
+    # find a locked queue and has requests
+    # lock it if it is not already locked
     q = getQueue(reqer)
     if q.status == 0 and len(q.requests) > 0:
         if typeOfCheck == '1':
@@ -246,13 +243,13 @@ def handleQueueProccessing(reqer, typeOfCheck):
 
 #TODO multiprocesses this bad body
 def jobToCheckAnalyzingScheduler():
-    # get a AnalyzingScheduler where check is 1 and check_at > 3 seconds from now 
+    # get a AnalyzingScheduler where check is 1 and check_at > 3 seconds from now
     dateToCheck = datetime.now() - timedelta(seconds=Variables.secondsToIncreaseSchedulerTimeBy)
     ass = AnalyzingScheduler.objects(check = 1, check_at__lte = dateToCheck)
     if ass:
         for a in ass:
             reqer = a.requester
-            # get the queue where len(requests) > 0 
+            # get the queue where len(requests) > 0
             q = getQueue(reqer)
             if len(q.requests) > 0:
                 # seond the message to the user
@@ -265,7 +262,7 @@ def jobToCheckAnalyzingScheduler():
                 q.save()
             a.check = 0
             a.save()
-            return 
+            return
 
 def unifiedMessageString(data, bot):
     dic = {'SmsMessageSid': '', 'NumMedia': '0', \
@@ -273,17 +270,17 @@ def unifiedMessageString(data, bot):
      'Body': '', 'To': 'telegram+388322954', 'NumSegments': '1', 'MessageSid': '', \
      'AccountSid': '', \
      'From': '', 'ApiVersion': '2010-04-01'}
-     
+
     data = ast.literal_eval(data)
     if 'text'in data['message']:
-        dic['Body'] =  data['message']['text'] 
+        dic['Body'] =  data['message']['text']
     if 'caption'in data['message']:
-        dic['Body'] =  data['message']['caption'] 
-    dic['NumMedia'] = '0' 
+        dic['Body'] =  data['message']['caption']
+    dic['NumMedia'] = '0'
     dic['SmsMessageSid'] = str(data['update_id'])
     dic['SmsSid'] = str(data['update_id'])
     dic['From'] = 'telegram+' + str(data['message']['chat']['id'])
-    
+
     if 'video' in data['message']:
         dic['NumMedia'] = '1'
         dic['MediaContentType0'] =  'video/mp4'
@@ -303,7 +300,7 @@ def unifiedMessageString(data, bot):
     return dic
 
 def AIdecider():
-    return random.randint(1,3) 
+    return random.randint(1,3)
 
 def getSrotedRumors(numberOfRumors):
     rumors = Rumor.objects.order_by('-report_counter').limit(numberOfRumors)
@@ -330,5 +327,5 @@ def saveImage(img):
 
     with open(mage_local_path, 'wb') as f:
             f.write(imgdata)
-    
+
     return mage_local_path

@@ -1,7 +1,7 @@
 from variables import Variables
 from services import *
 import telegram
-from __main__ import app
+from main import app
 import urllib.request
 from flask import Flask, request
 from communication import sendTGMessage, prepareTGMessage
@@ -11,7 +11,7 @@ def set_webhook():
     contents = urllib.request.urlopen("https://api.telegram.org/bot"+Variables.bot_token+"/setWebHook?url="+Variables.URL).read()
 
 @app.route('/telBot', methods=['POST'])
-def telBot(): 
+def telBot():
     try:
         update = str(telegram.Update.de_json(request.get_json(force=True), bot))
         recMsg = unifiedMessageString(update, bot)
@@ -23,4 +23,4 @@ def telBot():
         print('error:')
         print(e)
         return ''
-        return ''
+    return ''

@@ -1,15 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 from flask import request
 from twilio.twiml.messaging_response import MessagingResponse
 from services import *
-from messages import * 
-from __main__ import app
-
-from flask import  request
-from twilio.twiml.messaging_response import MessagingResponse
-from services import *
-from __main__ import app
+from messages import *
+from main import app
 
 @app.route('/bot', methods=['POST'])
 def bot():

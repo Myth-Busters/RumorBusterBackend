@@ -1,7 +1,7 @@
 import ast
 
 class Variables:
-     with open('./config.json') as dataFile:
+     with open('/home/talalnks/RumorBusterBackend/config.json') as dataFile:
         config =  ast.literal_eval(dataFile.read())
         secondsToWaitBeforeSendingSameMessage = config['logic']['secondsToWaitBeforeSendingSameMessage']
         secondsToIncreaseSchedulerTimeBy = config['logic']['secondsToIncreaseSchedulerTimeBy']
@@ -14,5 +14,6 @@ class Variables:
         bot_token = config['tokens']['bot_token']
         bot_user_name = config['bots']['telegramBotName']
         URL = config['links']['server'] + config['links']['telegramBot']
-        BOT_URL = config['links']['telegramApi']+bot_token+'/' 
+        BOT_URL = config['links']['telegramApi']+bot_token+'/'
+        DB_CONNECTION = config['database']['connection']
         seed = True

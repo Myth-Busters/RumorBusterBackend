@@ -4,13 +4,10 @@ from models import Fact, Rumor
 import ast
 import random
 
-connect(db=Variables.databaseName,
-        host="mongodb",
-        username="user-test",
-        password="password-test")
+connect(host=Variables.DB_CONNECTION)
 
 if Variables.seed:
-    with open('../RumorsFacts.json') as dataFile:
+    with open('/home/talalnks/RumorBusterBackend/RumorsFacts.json') as dataFile:
         data =  ast.literal_eval(dataFile.read())
         for rumor in data:
             existingRumor = Rumor.objects(body = rumor['Rumors']).first()

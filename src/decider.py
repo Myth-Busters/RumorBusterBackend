@@ -9,7 +9,8 @@ import ast
 from variables import Variables
 IMAGES_DIR = "images"
 
-    
+connect(host=Variables.DB_CONNECTION)
+
 def save_media(img_url, media_type):
   #let's grab our media first
   image_local_path = ""
@@ -71,19 +72,13 @@ def search_if_exists(query):
   elif query.num_media == '1':
     rumor = Rumor.objects(image_hash__exact=query.image_hash)
   return rumor
-  
+
   return rumor
 def handle_request2(request, flag):
-  connect(db=Variables.databaseName,
-        host="mongodb",
-        username="user-test",
-        password="password-test")
-  #connect(Variables.databaseName)
-  
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
   rumor = search_if_exists(query) #Find existing rumor
-  
+
   #if the rumor exists link it, otherwise register if it's a report
   if rumor:
     query.linked_rumor = rumor
@@ -109,7 +104,7 @@ def handle_request2(request, flag):
       print('Found {} posts with tag "mongodb"'.format(rumor_count))
 
     #Check if a certain rumor has more than 15 reports
-  
+
 def handle_check(query):
   if query.num_media == '0':
     count = Query.objects(body__exact=query.body, query_type = 2).count()
@@ -118,8 +113,8 @@ def handle_check(query):
 
   if count > 15: # threshold number of spam reports
     return 1 # decider decided it is rumor
-  return 2 # we have less reports to what qualifis as a rumor 
-  
+  return 2 # we have less reports to what qualifis as a rumor
+
 def create_rumor(query_dic):
   image_local_path, hash = None, None
   if query_dic.get("NumMedia") == '1':
@@ -127,7 +122,7 @@ def create_rumor(query_dic):
 
   if query_dic.get("localPath") and query_dic.get("img"):
     image_local_path, hash =  query_dic.get("localPath"), hash_local_file(query_dic.get("localPath"))
-   
+
   rumor = Rumor(body = query_dic.get("body"))# e.g. body
   rumor.image_url = query_dic.get("MediaUrl0")
   rumor.image_local_path = image_local_path
@@ -136,18 +131,14 @@ def create_rumor(query_dic):
   rumor.video_url = "Not Supported" #get binary in a different field later
   rumor.save()
   return rumor
-  
+
 def handle_request(request, flag):
-  connect(db=Variables.databaseName,
-        host="mongodb",
-        username="user-test",
-        password="password-test")
   parsed_req= ast.literal_eval(request)
   query = register_request(parsed_req,flag) #Register the query happened
   record = search_if_exists(query) #Find existing rumor
   if flag == '1': #check
     if not record:
-      return 3 # not a rumor because rumor does not exist ||  
+      return 3 # not a rumor because rumor does not exist ||
     return handle_check(query)
   elif flag == '2': #report
       rumor = None

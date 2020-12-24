@@ -4,7 +4,7 @@ from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from services import jobToCheckAnalyzingScheduler
 app = Flask(__name__)
 
-import waBot 
+import waBot
 import tgBot
 import api
 
@@ -14,7 +14,7 @@ executors = {
     'processpool': ProcessPoolExecutor(4)
 }
 
- 
+
 sched = BackgroundScheduler(timezone='Asia/Seoul', executors=executors)
 sched.add_job(jobToCheckAnalyzingScheduler, 'interval', seconds=1)
 
@@ -28,4 +28,5 @@ if __name__ == "__main__":
     # app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
     tgBot.set_webhook()
     sched.start()
-    app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
+    # app.run(host='0.0.0.0',ssl_context=('cert.pem', 'key.pem'))
+    app.run()
